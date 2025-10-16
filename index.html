@@ -50,7 +50,7 @@
                 name: 'Alex Johnson',
                 email: 'student@university.edu',
                 studentId: 'U2023CS101',
-                major: 'Computer Science',
+                major: 'Cyber Security',
                 gpa: 3.85,
             },
             announcements: [
@@ -79,7 +79,7 @@
             grades: { 'CS101': { name: 'Intro to Programming', grade: 'A' }, 'MA101': { name: 'Calculus I', grade: 'A-' }, 'CS202': { name: 'Data Structures', grade: 'B+' }, 'EN101': { name: 'English Composition', grade: 'A' } },
             auth: { isAuthenticated: false, isAdmin: false, },
             admin: { editingAnnouncementId: null, editingEventId: null },
-            ui: { isSidebarOpen: false }
+            ui: { isSidebarOpen: false, isProfileEditing: false }
         };
 
         // --- CORE APP & AUTH LOGIC ---
@@ -147,36 +147,37 @@
                     </div>
                 </div>`;
             
-            // Event Delegation: Attach one listener to the persistent `page` container
-            if (!page.dataset.listenerAttached) {
-                page.addEventListener('click', (e) => {
-                    if (e.target && e.target.id === 'show-register') {
+            // Event Delegation
+            const authPage = document.getElementById('page-auth');
+            if (!authPage.dataset.listenerAttached) {
+                authPage.addEventListener('click', (e) => {
+                    if (e.target.id === 'show-register') {
                         e.preventDefault();
-                        const formContainer = page.querySelector('#login-form-container');
+                        const formContainer = authPage.querySelector('#login-form-container');
                         if (formContainer) {
                             formContainer.classList.add('form-fade-exit');
-                            setTimeout(() => renderAuthPage(page, 'register'), 200);
+                            setTimeout(() => renderAuthPage(authPage, 'register'), 200);
                         }
                     }
-                    if (e.target && e.target.id === 'show-login') {
+                    if (e.target.id === 'show-login') {
                         e.preventDefault();
-                        const formContainer = page.querySelector('#register-form-container');
+                        const formContainer = authPage.querySelector('#register-form-container');
                         if (formContainer) {
                             formContainer.classList.add('form-fade-exit');
-                            setTimeout(() => renderAuthPage(page, 'login'), 200);
+                            setTimeout(() => renderAuthPage(authPage, 'login'), 200);
                         }
                     }
                 });
 
-                page.addEventListener('submit', (e) => {
-                    if(e.target && e.target.id === 'login-form') {
+                authPage.addEventListener('submit', (e) => {
+                    if (e.target.id === 'login-form') {
                         loginUser(e);
                     }
-                    if(e.target && e.target.id === 'register-form') {
+                    if (e.target.id === 'register-form') {
                         registerUser(e);
                     }
                 });
-                page.dataset.listenerAttached = 'true';
+                authPage.dataset.listenerAttached = 'true';
             }
         }
         
@@ -215,7 +216,62 @@
         function renderUserAnnouncements(contentContainer, searchTerm = '') { const filteredAnnouncements = state.announcements.filter(a => a.title.toLowerCase().includes(searchTerm.toLowerCase())); contentContainer.innerHTML = `<div class="mb-6"><input type="search" id="announcement-search" placeholder="Search announcements..." value="${searchTerm}"></div><div class="space-y-6">${filteredAnnouncements.map(a => `<div class="widget"><h3 class="text-xl font-bold text-white">${a.title}</h3><p class="text-sm text-gray-400 mb-2">Posted: ${a.date}</p><p>${a.content}</p></div>`).join('') || `<p>No announcements found.</p>`}</div>`; document.getElementById('announcement-search').addEventListener('input', (e) => renderUserAnnouncements(contentContainer, e.target.value)); }
         function renderUserCourses(contentContainer, searchTerm = '') { const filteredCourses = state.courses.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.code.toLowerCase().includes(searchTerm.toLowerCase())); contentContainer.innerHTML = `<div class="mb-6"><input type="search" id="course-search" placeholder="Search by course name or code..." value="${searchTerm}"></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6">${filteredCourses.map(c => `<div class="widget"><span class="text-sm font-semibold text-blue-400">${c.code}</span><h3 class="text-xl font-bold text-white mt-1">${c.name}</h3><p class="text-gray-400 mt-1">Instructor: ${c.instructor}</p></div>`).join('') || `<p>No courses found.</p>`}</div>`; document.getElementById('course-search').addEventListener('input', (e) => renderUserCourses(contentContainer, e.target.value)); }
         function renderUserEvents(contentContainer, searchTerm = '') { const filteredEvents = state.events.filter(e => e.title.toLowerCase().includes(searchTerm.toLowerCase())); contentContainer.innerHTML = `<div class="mb-6"><input type="search" id="event-search" placeholder="Search events..." value="${searchTerm}"></div><div class="widget"><ul class="space-y-4">${filteredEvents.map(e => `<li class="p-4 bg-gray-700 rounded-lg flex justify-between items-center"><div><h3 class="text-lg font-bold text-white">${e.title}</h3><p class="text-gray-400">${e.location}</p></div><div class="text-right"><p class="font-semibold text-blue-400">${e.date}</p><p class="text-gray-300">${new Date(`1970-01-01T${e.time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div></li>`).join('') || `<p>No events found.</p>`}</ul></div>`; document.getElementById('event-search').addEventListener('input', (e) => renderUserEvents(contentContainer, e.target.value)); }
-        function renderUserProfile(contentContainer) { contentContainer.innerHTML = `<div class="widget max-w-2xl mx-auto"><h2 class="text-2xl font-bold text-white mb-6">Student Profile</h2><div class="space-y-4"><div class="flex justify-between"><span class="text-gray-400">Full Name:</span><span class="font-semibold">${state.user.name}</span></div><div class="flex justify-between"><span class="text-gray-400">Student ID:</span><span class="font-semibold">${state.user.studentId}</span></div><div class="flex justify-between"><span class="text-gray-400">Email Address:</span><span class="font-semibold">${state.user.email}</span></div><div class="flex justify-between"><span class="text-gray-400">Major:</span><span class="font-semibold">${state.user.major}</span></div><div class="flex justify-between"><span class="text-gray-400">Current GPA:</span><span class="font-semibold">${state.user.gpa}</span></div></div></div>`; }
+        
+        function renderUserProfile(contentContainer) { 
+             if (state.ui.isProfileEditing) {
+                contentContainer.innerHTML = `<div class="widget max-w-2xl mx-auto">
+                    <form id="profile-edit-form">
+                        <h2 class="text-2xl font-bold text-white mb-6">Edit Profile</h2>
+                        <div class="space-y-4">
+                            <div><label class="text-sm text-gray-400 mb-1 block">Full Name</label><input type="text" id="profile-name" value="${state.user.name}" required></div>
+                            <div><label class="text-sm text-gray-400 mb-1 block">Email Address</label><input type="email" id="profile-email" value="${state.user.email}" required></div>
+                            <div><label class="text-sm text-gray-400 mb-1 block">Major</label><input type="text" id="profile-major" value="${state.user.major}" required></div>
+                            <div class="flex justify-between pt-2"><span class="text-gray-400">Student ID:</span><span class="font-semibold">${state.user.studentId} (cannot be changed)</span></div>
+                        </div>
+                        <div class="flex space-x-4 mt-8">
+                           <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>
+                           <button type="button" id="cancel-profile-edit" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+                        </div>
+                    </form>
+                </div>`;
+                document.getElementById('profile-edit-form').addEventListener('submit', saveUserProfile);
+                document.getElementById('cancel-profile-edit').addEventListener('click', cancelEditProfile);
+             } else {
+                contentContainer.innerHTML = `<div class="widget max-w-2xl mx-auto">
+                    <div class="flex justify-between items-start">
+                        <h2 class="text-2xl font-bold text-white mb-6">Student Profile</h2>
+                        <button id="edit-profile-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg text-sm">Edit Profile</button>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between"><span class="text-gray-400">Full Name:</span><span class="font-semibold">${state.user.name}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Student ID:</span><span class="font-semibold">${state.user.studentId}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Email Address:</span><span class="font-semibold">${state.user.email}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Major:</span><span class="font-semibold">${state.user.major}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">Current GPA:</span><span class="font-semibold">${state.user.gpa}</span></div>
+                    </div>
+                </div>`;
+                document.getElementById('edit-profile-btn').addEventListener('click', editProfile);
+             }
+        }
+        
+        function editProfile() {
+            state.ui.isProfileEditing = true;
+            renderUserDashboard(document.getElementById('page-dashboard'), 'profile');
+        }
+
+        function cancelEditProfile() {
+            state.ui.isProfileEditing = false;
+            renderUserDashboard(document.getElementById('page-dashboard'), 'profile');
+        }
+
+        function saveUserProfile(e) {
+            e.preventDefault();
+            state.user.name = document.getElementById('profile-name').value;
+            state.user.email = document.getElementById('profile-email').value;
+            state.user.major = document.getElementById('profile-major').value;
+            state.ui.isProfileEditing = false;
+            renderUserDashboard(document.getElementById('page-dashboard'), 'profile');
+        }
         
         const adminDashboardViews = { 
             announcements: { title: 'Manage Announcements', render: renderAdminAnnouncements }, 
