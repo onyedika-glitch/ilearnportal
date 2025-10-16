@@ -135,35 +135,48 @@
                         </div>
                     </div>
                     <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
-                        <div class="w-full max-w-md relative overflow-hidden">
-                             ${mode === 'login' ? loginForm : registerForm}
-                            <div class="absolute bottom-0 left-0 right-0 text-center pb-4">
-                                <p class="text-center text-xs text-gray-500"><a href="#" onclick="renderPage('page-admin-login')" class="hover:underline">Admin Login</a> | <a href="#" onclick="renderPage('page-landing')" class="hover:underline">Back to Home</a></p>
+                        <div class="w-full max-w-md">
+                            <div id="auth-form-content">
+                                ${mode === 'login' ? loginForm : registerForm}
+                            </div>
+                            <div class="text-center mt-8 space-y-2">
+                                <p class="text-xs text-gray-500"><a href="#" onclick="renderPage('page-admin-login')" class="hover:underline">Admin Login</a></p>
+                                <p class="text-xs text-gray-500"><a href="#" onclick="renderPage('page-landing')" class="hover:underline">Back to Home</a></p>
                             </div>
                         </div>
                     </div>
                 </div>`;
             
-            const showRegisterLink = page.querySelector('#show-register');
-            const showLoginLink = page.querySelector('#show-login');
+            // Event Delegation: Attach one listener to the persistent `page` container
+            if (!page.dataset.listenerAttached) {
+                page.addEventListener('click', (e) => {
+                    if (e.target && e.target.id === 'show-register') {
+                        e.preventDefault();
+                        const formContainer = page.querySelector('#login-form-container');
+                        if (formContainer) {
+                            formContainer.classList.add('form-fade-exit');
+                            setTimeout(() => renderAuthPage(page, 'register'), 200);
+                        }
+                    }
+                    if (e.target && e.target.id === 'show-login') {
+                        e.preventDefault();
+                        const formContainer = page.querySelector('#register-form-container');
+                        if (formContainer) {
+                            formContainer.classList.add('form-fade-exit');
+                            setTimeout(() => renderAuthPage(page, 'login'), 200);
+                        }
+                    }
+                });
 
-            if (showRegisterLink) {
-                showRegisterLink.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const formContainer = page.querySelector('#login-form-container');
-                    formContainer.classList.add('form-fade-exit');
-                    setTimeout(() => renderAuthPage(page, 'register'), 200);
+                page.addEventListener('submit', (e) => {
+                    if(e.target && e.target.id === 'login-form') {
+                        loginUser(e);
+                    }
+                    if(e.target && e.target.id === 'register-form') {
+                        registerUser(e);
+                    }
                 });
-                page.querySelector('#login-form').addEventListener('submit', loginUser);
-            }
-            if (showLoginLink) {
-                showLoginLink.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const formContainer = page.querySelector('#register-form-container');
-                    formContainer.classList.add('form-fade-exit');
-                    setTimeout(() => renderAuthPage(page, 'login'), 200);
-                });
-                 page.querySelector('#register-form').addEventListener('submit', registerUser);
+                page.dataset.listenerAttached = 'true';
             }
         }
         
@@ -172,39 +185,10 @@
             document.getElementById('admin-login-form').addEventListener('submit', loginAdmin); 
         }
 
-        function loginUser(e) { 
-            e.preventDefault(); 
-            state.auth.isAuthenticated = true; 
-            state.auth.isAdmin = false; 
-            renderPage('page-dashboard'); 
-        }
-
-        function registerUser(e) { 
-            e.preventDefault(); 
-            state.user.name = document.getElementById('register-name').value; 
-            state.user.email = document.getElementById('register-email').value; 
-            state.user.studentId = 'U' + new Date().getFullYear() + 'CS' + Math.floor(100 + Math.random() * 900); 
-            loginUser(e); 
-        }
-
-        function loginAdmin(e) { 
-            e.preventDefault(); 
-            const email = document.getElementById('admin-email').value; 
-            const pass = document.getElementById('admin-password').value; 
-            if (email === 'admin@university.edu' && pass === 'adminpass') { 
-                state.auth.isAuthenticated = true; 
-                state.auth.isAdmin = true; 
-                renderPage('page-admin-dashboard'); 
-            } else { 
-                alert('Invalid admin credentials.'); 
-            } 
-        }
-
-        function logout() { 
-            state.auth.isAuthenticated = false; 
-            state.auth.isAdmin = false; 
-            renderPage('page-landing'); 
-        }
+        function loginUser(e) { e.preventDefault(); state.auth.isAuthenticated = true; state.auth.isAdmin = false; renderPage('page-dashboard'); }
+        function registerUser(e) { e.preventDefault(); state.user.name = document.getElementById('register-name').value; state.user.email = document.getElementById('register-email').value; state.user.studentId = 'U' + new Date().getFullYear() + 'CS' + Math.floor(100 + Math.random() * 900); loginUser(e); }
+        function loginAdmin(e) { e.preventDefault(); const email = document.getElementById('admin-email').value; const pass = document.getElementById('admin-password').value; if (email === 'admin@university.edu' && pass === 'adminpass') { state.auth.isAuthenticated = true; state.auth.isAdmin = true; renderPage('page-admin-dashboard'); } else { alert('Invalid admin credentials.'); } }
+        function logout() { state.auth.isAuthenticated = false; state.auth.isAdmin = false; renderPage('page-landing'); }
         
         const userDashboardViews = { 
             overview: { title: 'Dashboard', icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"></path></svg>', render: renderUserOverview }, 
