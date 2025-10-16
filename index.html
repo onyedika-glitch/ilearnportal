@@ -65,189 +65,63 @@
             ],
             grades: { 'CS101': { name: 'Intro to Programming', grade: 'A' }, 'MA101': { name: 'Calculus I', grade: 'A-' }, 'CS202': { name: 'Data Structures', grade: 'B+' }, 'EN101': { name: 'English Composition', grade: 'A' } },
             auth: { isAuthenticated: false, isAdmin: false, },
-            admin: { editingAnnouncementId: null, editingEventId: null }
+            admin: { editingAnnouncementId: null, editingEventId: null },
+            ui: { isSidebarOpen: false }
         };
 
         // --- CORE APP & AUTH LOGIC ---
         const pages = ['page-landing', 'page-auth', 'page-dashboard', 'page-admin-login', 'page-admin-dashboard'];
         
         function renderPage(pageId) {
-            // Hide all pages first
             pages.forEach(id => document.getElementById(id).classList.add('hidden'));
-
-            // Get the target page container
             const targetPage = document.getElementById(pageId);
             
-            // Render the correct content into the container
             if (pageId === 'page-landing') renderLandingPage(targetPage);
             else if (pageId === 'page-auth') renderAuthPage(targetPage);
             else if (pageId === 'page-dashboard') renderUserDashboard(targetPage);
             else if (pageId === 'page-admin-login') renderAdminLoginPage(targetPage);
             else if (pageId === 'page-admin-dashboard') renderAdminDashboard(targetPage);
 
-            // Un-hide the page container
             targetPage.classList.remove('hidden');
+        }
+
+        function toggleSidebar(forceClose = null) {
+            state.ui.isSidebarOpen = forceClose === null ? !state.ui.isSidebarOpen : !forceClose;
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (state.ui.isSidebarOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
         }
 
         // --- RENDER FUNCTIONS FOR EACH PAGE ---
         function renderLandingPage(page) {
-             const announcementsHtml = state.announcements.slice(0, 2).map(a => `
-                <div class="bg-gray-800 p-4 rounded-lg">
-                    <h3 class="font-semibold text-white">${a.title}</h3>
-                    <p class="text-sm text-gray-400">${a.content.substring(0, 70)}...</p>
-                </div>
-             `).join('');
-
-             const eventsHtml = state.events.slice(0, 2).map(e => `
-                <div class="bg-gray-800 p-4 rounded-lg flex justify-between items-center">
-                    <div>
-                        <h3 class="font-semibold text-white">${e.title}</h3>
-                        <p class="text-sm text-gray-400">${e.location}</p>
-                    </div>
-                    <div class="text-right">
-                         <p class="font-semibold text-blue-400">${e.date}</p>
-                         <p class="text-sm text-gray-300">${new Date(`1970-01-01T${e.time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                    </div>
-                </div>
-             `).join('');
-
-             page.innerHTML = `
-                <nav class="bg-gray-800/50 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-700">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="flex justify-between h-20">
-                            <div class="flex items-center">
-                                <svg class="w-8 h-8 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v11.494m-9-5.747h18"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 12a8.25 8.25 0 1016.5 0 8.25 8.25 0 00-16.5 0z"></path></svg>
-                                <span class="text-2xl font-bold text-white">University Board</span>
-                            </div>
-                            <div class="flex items-center">
-                                <button onclick="renderPage('page-auth')" class="bg-blue-600 text-white hover:bg-blue-700 font-semibold px-5 py-2 rounded-lg transition-colors">Login / Register</button>
-                            </div>
-                        </div>
-                    </div>
-                </nav>
-                <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                    <header class="text-center mb-16">
-                        <h1 class="text-5xl font-extrabold tracking-tight text-white sm:text-6xl">Your Academic Command Center</h1>
-                        <p class="mt-4 text-xl text-gray-400">All announcements, events, and schedules, unified and simplified.</p>
-                    </header>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        <div>
-                            <h2 class="text-2xl font-bold text-white mb-4 border-b-2 border-blue-500 pb-2">Latest Announcements</h2>
-                            <div class="space-y-4">${announcementsHtml}</div>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-white mb-4 border-b-2 border-blue-500 pb-2">Upcoming Events</h2>
-                            <div class="space-y-4">${eventsHtml}</div>
-                        </div>
-                    </div>
-                </main>
-                <footer class="text-center py-8 text-gray-500">&copy; 2025 University Board. All rights reserved.</footer>
-             `;
+             const announcementsHtml = state.announcements.slice(0, 2).map(a => `<div class="bg-gray-800 p-4 rounded-lg"><h3 class="font-semibold text-white">${a.title}</h3><p class="text-sm text-gray-400">${a.content.substring(0, 70)}...</p></div>`).join('');
+             const eventsHtml = state.events.slice(0, 2).map(e => `<div class="bg-gray-800 p-4 rounded-lg flex justify-between items-center"><div><h3 class="font-semibold text-white">${e.title}</h3><p class="text-sm text-gray-400">${e.location}</p></div><div class="text-right"><p class="font-semibold text-blue-400">${e.date}</p><p class="text-sm text-gray-300">${new Date(`1970-01-01T${e.time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div></div>`).join('');
+             page.innerHTML = `<nav class="bg-gray-800/50 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-700"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex justify-between h-20"><div class="flex items-center"><svg class="w-8 h-8 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v11.494m-9-5.747h18"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 12a8.25 8.25 0 1016.5 0 8.25 8.25 0 00-16.5 0z"></path></svg><span class="text-2xl font-bold text-white">University Board</span></div><div class="flex items-center"><button onclick="renderPage('page-auth')" class="bg-blue-600 text-white hover:bg-blue-700 font-semibold px-5 py-2 rounded-lg transition-colors">Login / Register</button></div></div></div></nav><main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"><header class="text-center mb-16"><h1 class="text-5xl font-extrabold tracking-tight text-white sm:text-6xl">Your Academic Command Center</h1><p class="mt-4 text-xl text-gray-400">All announcements, events, and schedules, unified and simplified.</p></header><div class="grid grid-cols-1 lg:grid-cols-2 gap-12"><div><h2 class="text-2xl font-bold text-white mb-4 border-b-2 border-blue-500 pb-2">Latest Announcements</h2><div class="space-y-4">${announcementsHtml}</div></div><div><h2 class="text-2xl font-bold text-white mb-4 border-b-2 border-blue-500 pb-2">Upcoming Events</h2><div class="space-y-4">${eventsHtml}</div></div></div></main><footer class="text-center py-8 text-gray-500">&copy; 2025 University Board. All rights reserved.</footer>`;
         }
-
+        
         function renderAuthPage(page, mode = 'login') {
-            const formHtml = mode === 'login' ? `
-                <h2 class="text-3xl font-bold mb-2 text-white">Welcome Back</h2>
-                <p class="text-gray-400 mb-8">Please sign in to your account.</p>
-                <form id="login-form" class="space-y-4">
-                    <div><input type="email" id="login-email" value="student@university.edu" required></div>
-                    <div><input type="password" id="login-password" value="password123" required></div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">Sign In</button>
-                    <p class="text-center text-sm text-gray-400 pt-2">Don't have an account? <a href="#" id="show-register" class="font-medium text-blue-500 hover:underline">Register</a></p>
-                </form>` : `
-                <h2 class="text-3xl font-bold mb-2 text-white">Create Account</h2>
-                <p class="text-gray-400 mb-8">Join the student community.</p>
-                <form id="register-form" class="space-y-4">
-                    <div><input type="text" id="register-name" placeholder="Full Name" required></div>
-                    <div><input type="email" id="register-email" placeholder="Email Address" required></div>
-                    <div><input type="password" id="register-password" placeholder="Password" required></div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">Create Account</button>
-                    <p class="text-center text-sm text-gray-400 pt-2">Already have an account? <a href="#" id="show-login" class="font-medium text-blue-500 hover:underline">Sign In</a></p>
-                </form>`;
-
-            page.innerHTML = `
-                <div class="min-h-screen flex">
-                    <div class="hidden lg:flex w-1/2 bg-gray-800 items-center justify-center p-12">
-                         <div class="text-center">
-                            <svg class="w-24 h-24 mx-auto mb-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v11.494m-9-5.747h18"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 12a8.25 8.25 0 1016.5 0 8.25 8.25 0 00-16.5 0z"></path></svg>
-                            <h1 class="text-4xl font-bold text-white mb-2">University Board</h1>
-                            <p class="text-gray-400">Your central hub for academic success.</p>
-                        </div>
-                    </div>
-                    <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
-                        <div class="w-full max-w-md">
-                            ${formHtml}
-                            <p class="text-center text-xs text-gray-500 mt-8"><a href="#" onclick="renderPage('page-admin-login')" class="hover:underline">Admin Login</a></p>
-                             <p class="text-center text-xs text-gray-500 mt-2"><a href="#" onclick="renderPage('page-landing')" class="hover:underline">Back to Landing Page</a></p>
-                        </div>
-                    </div>
-                </div>`;
-            
-            if (mode === 'login') {
-                document.getElementById('login-form').addEventListener('submit', loginUser);
-                document.getElementById('show-register').addEventListener('click', (e) => { e.preventDefault(); renderAuthPage(page, 'register'); });
-            } else {
-                document.getElementById('register-form').addEventListener('submit', registerUser);
-                document.getElementById('show-login').addEventListener('click', (e) => { e.preventDefault(); renderAuthPage(page, 'login'); });
-            }
+            const formHtml = mode === 'login' ? `<h2 class="text-3xl font-bold mb-2 text-white">Welcome Back</h2><p class="text-gray-400 mb-8">Please sign in to your account.</p><form id="login-form" class="space-y-4"><div><input type="email" id="login-email" value="student@university.edu" required></div><div><input type="password" id="login-password" value="password123" required></div><button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">Sign In</button><p class="text-center text-sm text-gray-400 pt-2">Don't have an account? <a href="#" id="show-register" class="font-medium text-blue-500 hover:underline">Register</a></p></form>` : `<h2 class="text-3xl font-bold mb-2 text-white">Create Account</h2><p class="text-gray-400 mb-8">Join the student community.</p><form id="register-form" class="space-y-4"><div><input type="text" id="register-name" placeholder="Full Name" required></div><div><input type="email" id="register-email" placeholder="Email Address" required></div><div><input type="password" id="register-password" placeholder="Password" required></div><button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">Create Account</button><p class="text-center text-sm text-gray-400 pt-2">Already have an account? <a href="#" id="show-login" class="font-medium text-blue-500 hover:underline">Sign In</a></p></form>`;
+            page.innerHTML = `<div class="min-h-screen flex"><div class="hidden lg:flex w-1/2 bg-gray-800 items-center justify-center p-12"><div class="text-center"><svg class="w-24 h-24 mx-auto mb-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v11.494m-9-5.747h18"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 12a8.25 8.25 0 1016.5 0 8.25 8.25 0 00-16.5 0z"></path></svg><h1 class="text-4xl font-bold text-white mb-2">University Board</h1><p class="text-gray-400">Your central hub for academic success.</p></div></div><div class="w-full lg:w-1/2 flex items-center justify-center p-8"><div class="w-full max-w-md">${formHtml}<p class="text-center text-xs text-gray-500 mt-8"><a href="#" onclick="renderPage('page-admin-login')" class="hover:underline">Admin Login</a></p><p class="text-center text-xs text-gray-500 mt-2"><a href="#" onclick="renderPage('page-landing')" class="hover:underline">Back to Landing Page</a></p></div></div></div>`;
+            if (mode === 'login') { document.getElementById('login-form').addEventListener('submit', loginUser); document.getElementById('show-register').addEventListener('click', (e) => { e.preventDefault(); renderAuthPage(page, 'register'); }); } else { document.getElementById('register-form').addEventListener('submit', registerUser); document.getElementById('show-login').addEventListener('click', (e) => { e.preventDefault(); renderAuthPage(page, 'login'); }); }
         }
 
         function renderAdminLoginPage(page) {
-            page.innerHTML = `<div class="min-h-screen flex items-center justify-center">
-            <div class="w-full max-w-md">
-                <h2 class="text-3xl font-bold mb-2 text-center text-white">Admin Panel</h2>
-                <p class="text-gray-400 mb-8 text-center">Please sign in to manage the board.</p>
-                <form id="admin-login-form" class="widget">
-                    <div class="mb-4">
-                        <label for="admin-email" class="block text-sm font-medium text-gray-400 mb-2">Email</label>
-                        <input type="email" id="admin-email" value="admin@university.edu" required>
-                    </div>
-                    <div class="mb-6">
-                        <label for="admin-password" class="block text-sm font-medium text-gray-400 mb-2">Password</label>
-                        <input type="password" id="admin-password" value="adminpass" required>
-                    </div>
-                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Sign In as Admin</button>
-                    <p class="text-center text-xs text-gray-500 mt-6"><a href="#" onclick="renderPage('page-auth')" class="hover:underline">Return to Student Login</a></p>
-                </form>
-            </div>
-        </div>`;
-            document.getElementById('admin-login-form').addEventListener('submit', loginAdmin);
+             page.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-full max-w-md"><h2 class="text-3xl font-bold mb-2 text-center text-white">Admin Panel</h2><p class="text-gray-400 mb-8 text-center">Please sign in to manage the board.</p><form id="admin-login-form" class="widget"><div class="mb-4"><label for="admin-email" class="block text-sm font-medium text-gray-400 mb-2">Email</label><input type="email" id="admin-email" value="admin@university.edu" required></div><div class="mb-6"><label for="admin-password" class="block text-sm font-medium text-gray-400 mb-2">Password</label><input type="password" id="admin-password" value="adminpass" required></div><button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Sign In as Admin</button><p class="text-center text-xs text-gray-500 mt-6"><a href="#" onclick="renderPage('page-auth')" class="hover:underline">Return to Student Login</a></p></form></div></div>`;
+             document.getElementById('admin-login-form').addEventListener('submit', loginAdmin);
         }
         
         // --- EVENT HANDLERS ---
-        function loginUser(e) {
-            e.preventDefault();
-            state.auth.isAuthenticated = true;
-            state.auth.isAdmin = false;
-            renderPage('page-dashboard');
-        }
-
-        function registerUser(e) {
-            e.preventDefault();
-            state.user.name = document.getElementById('register-name').value;
-            state.user.email = document.getElementById('register-email').value;
-            state.user.studentId = 'U' + new Date().getFullYear() + 'CS' + Math.floor(100 + Math.random() * 900);
-            loginUser(e);
-        }
-
-        function loginAdmin(e) {
-            e.preventDefault();
-            const email = document.getElementById('admin-email').value;
-            const pass = document.getElementById('admin-password').value;
-            if (email === 'admin@university.edu' && pass === 'adminpass') {
-                state.auth.isAuthenticated = true;
-                state.auth.isAdmin = true;
-                renderPage('page-admin-dashboard');
-            } else {
-                alert('Invalid admin credentials.');
-            }
-        }
-
-        function logout() {
-            state.auth.isAuthenticated = false;
-            state.auth.isAdmin = false;
-            renderPage('page-landing');
-        }
+        function loginUser(e) { e.preventDefault(); state.auth.isAuthenticated = true; state.auth.isAdmin = false; renderPage('page-dashboard'); }
+        function registerUser(e) { e.preventDefault(); state.user.name = document.getElementById('register-name').value; state.user.email = document.getElementById('register-email').value; state.user.studentId = 'U' + new Date().getFullYear() + 'CS' + Math.floor(100 + Math.random() * 900); loginUser(e); }
+        function loginAdmin(e) { e.preventDefault(); const email = document.getElementById('admin-email').value; const pass = document.getElementById('admin-password').value; if (email === 'admin@university.edu' && pass === 'adminpass') { state.auth.isAuthenticated = true; state.auth.isAdmin = true; renderPage('page-admin-dashboard'); } else { alert('Invalid admin credentials.'); } }
+        function logout() { state.auth.isAuthenticated = false; state.auth.isAdmin = false; renderPage('page-landing'); }
 
         // --- STUDENT DASHBOARD RENDER ---
         const userDashboardViews = {
@@ -262,8 +136,9 @@
 
         function renderUserDashboard(page, activeView = 'overview') {
             page.innerHTML = `
-                <div class="flex h-screen bg-gray-900">
-                    <aside class="w-64 flex-shrink-0 bg-gray-800 border-r border-gray-700 flex flex-col">
+                <div class="relative h-screen flex overflow-hidden bg-gray-900">
+                    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden" onclick="toggleSidebar()"></div>
+                    <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 border-r border-gray-700 flex flex-col z-40 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out">
                         <div class="h-20 flex items-center justify-center text-2xl font-bold text-white">University Board</div>
                         <nav class="flex-1 px-4 py-4 space-y-2" id="dashboard-nav"></nav>
                         <div class="px-4 py-4">
@@ -273,16 +148,19 @@
                             </button>
                         </div>
                     </aside>
-                    <main class="flex-1 overflow-y-auto">
-                        <header class="h-20 flex items-center justify-between px-8 border-b border-gray-700">
-                            <h1 id="dashboard-title" class="text-2xl font-bold text-white"></h1>
+                    <div class="flex-1 flex flex-col overflow-y-auto">
+                        <header class="h-20 flex items-center justify-between px-4 sm:px-8 border-b border-gray-700 bg-gray-900 flex-shrink-0">
+                            <button id="menu-toggle" class="md:hidden p-2 rounded-md text-gray-400 hover:bg-gray-700" onclick="toggleSidebar()">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 id="dashboard-title" class="text-xl sm:text-2xl font-bold text-white"></h1>
                             <div class="flex items-center space-x-4">
-                                <span class="text-gray-300">Welcome, <span id="user-name" class="font-semibold"></span></span>
+                                <span class="hidden sm:inline text-gray-300">Welcome, <span id="user-name" class="font-semibold"></span></span>
                                 <img class="w-10 h-10 rounded-full" src="https://i.pravatar.cc/150?u=${state.user.email}" alt="user photo">
                             </div>
                         </header>
-                        <div class="p-8" id="dashboard-content"></div>
-                    </main>
+                        <main class="flex-1 p-4 sm:p-8" id="dashboard-content"></main>
+                    </div>
                 </div>`;
 
             document.getElementById('user-name').textContent = state.user.name;
@@ -291,6 +169,7 @@
             document.querySelectorAll('#dashboard-nav .sidebar-link').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
+                    toggleSidebar(true);
                     renderUserDashboard(page, e.currentTarget.dataset.view);
                 });
             });
@@ -300,75 +179,14 @@
         }
         
         // --- STUDENT VIEW RENDER FUNCTIONS ---
-        function renderUserOverview(contentContainer) {
-            contentContainer.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                <div class="widget col-span-1 md:col-span-2 lg:col-span-1"><h3 class="text-lg font-semibold text-gray-400 mb-4">Next Class</h3><p class="text-3xl font-bold text-white">${state.timetable[0].course}</p><p class="text-blue-400">${state.timetable[0].time} in ${state.timetable[0].venue}</p></div>
-                <div class="widget col-span-1"><h3 class="text-lg font-semibold text-gray-400 mb-4">Overall GPA</h3><p class="text-5xl font-bold text-white">${state.user.gpa}</p></div>
-                <div class="widget col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-2"><h3 class="text-lg font-semibold text-gray-400 mb-4">Upcoming Events</h3><ul class="space-y-3">${state.events.map(e => `<li class="flex items-center justify-between"><div><p class="font-semibold text-white">${e.title}</p><p class="text-sm text-gray-400">${e.location}</p></div><span class="text-sm font-medium text-blue-400">${e.date}</span></li>`).join('')}</ul></div>
-                <div class="widget col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4"><h3 class="text-lg font-semibold text-gray-400 mb-4">Recent Announcements</h3><ul class="space-y-4">${state.announcements.map(a => `<li><p class="font-semibold text-white">${a.title}</p><p class="text-sm text-gray-400">${a.content}</p></li>`).join('')}</ul></div>
-            </div>`;
-        }
-        function renderUserTimetable(contentContainer) {
-             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-             contentContainer.innerHTML = `<div class="widget overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-700">${days.map(d => `<th class="p-4 text-sm font-semibold text-gray-300">${d}</th>`).join('')}</tr></thead><tbody><tr>${days.map(d => { const session = state.timetable.find(s => s.day === d); return `<td class="p-4 align-top">${session ? `<div class="bg-gray-700 p-3 rounded-lg"><p class="font-bold text-white">${session.course}</p><p class="text-sm text-blue-400">${session.time}</p><p class="text-sm text-gray-400">${session.venue}</p></div>` : ''}</td>`; }).join('')}</tr></tbody></table></div>`;
-        }
-        function renderUserGrades(contentContainer) {
-            contentContainer.innerHTML = `<div class="widget"><table class="w-full text-left"><thead><tr class="border-b border-gray-700"><th class="p-4">Course Code</th><th class="p-4">Course Name</th><th class="p-4 text-right">Grade</th></tr></thead><tbody>${Object.entries(state.grades).map(([code, data]) => `<tr class="border-b border-gray-700"><td class="p-4 text-gray-400">${code}</td><td class="p-4 font-semibold text-white">${data.name}</td><td class="p-4 text-right font-bold text-2xl ${data.grade.startsWith('A') ? 'text-green-400' : 'text-yellow-400'}">${data.grade}</td></tr>`).join('')}</tbody></table></div>`;
-        }
-        function renderUserAnnouncements(contentContainer, searchTerm = '') {
-            const filteredAnnouncements = state.announcements.filter(a => a.title.toLowerCase().includes(searchTerm.toLowerCase()));
-            contentContainer.innerHTML = `
-                <div class="mb-6"><input type="search" id="announcement-search" placeholder="Search announcements..." value="${searchTerm}"></div>
-                <div class="space-y-6">
-                ${filteredAnnouncements.map(a => `<div class="widget"><h3 class="text-xl font-bold text-white">${a.title}</h3><p class="text-sm text-gray-400 mb-2">Posted: ${a.date}</p><p>${a.content}</p></div>`).join('') || `<p>No announcements found.</p>`}
-                </div>`;
-            document.getElementById('announcement-search').addEventListener('input', (e) => renderUserAnnouncements(contentContainer, e.target.value));
-        }
-        function renderUserCourses(contentContainer, searchTerm = '') {
-            const filteredCourses = state.courses.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.code.toLowerCase().includes(searchTerm.toLowerCase()));
-             contentContainer.innerHTML = `
-                <div class="mb-6"><input type="search" id="course-search" placeholder="Search by course name or code..." value="${searchTerm}"></div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    ${filteredCourses.map(c => `<div class="widget"><span class="text-sm font-semibold text-blue-400">${c.code}</span><h3 class="text-xl font-bold text-white mt-1">${c.name}</h3><p class="text-gray-400 mt-1">Instructor: ${c.instructor}</p></div>`).join('') || `<p>No courses found.</p>`}
-                </div>`;
-            document.getElementById('course-search').addEventListener('input', (e) => renderUserCourses(contentContainer, e.target.value));
-        }
-        function renderUserEvents(contentContainer, searchTerm = '') {
-            const filteredEvents = state.events.filter(e => e.title.toLowerCase().includes(searchTerm.toLowerCase()));
-            contentContainer.innerHTML = `
-                <div class="mb-6"><input type="search" id="event-search" placeholder="Search events..." value="${searchTerm}"></div>
-                <div class="widget">
-                    <ul class="space-y-4">
-                        ${filteredEvents.map(e => `
-                            <li class="p-4 bg-gray-700 rounded-lg flex justify-between items-center">
-                                <div>
-                                    <h3 class="text-lg font-bold text-white">${e.title}</h3>
-                                    <p class="text-gray-400">${e.location}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="font-semibold text-blue-400">${e.date}</p>
-                                    <p class="text-gray-300">${new Date(`1970-01-01T${e.time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                                </div>
-                            </li>`).join('') || `<p>No events found.</p>`}
-                    </ul>
-                </div>`;
-            document.getElementById('event-search').addEventListener('input', (e) => renderUserEvents(contentContainer, e.target.value));
-        }
-        function renderUserProfile(contentContainer) {
-            contentContainer.innerHTML = `
-                <div class="widget max-w-2xl mx-auto">
-                    <h2 class="text-2xl font-bold text-white mb-6">Student Profile</h2>
-                    <div class="space-y-4">
-                        <div class="flex justify-between"><span class="text-gray-400">Full Name:</span><span class="font-semibold">${state.user.name}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-400">Student ID:</span><span class="font-semibold">${state.user.studentId}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-400">Email Address:</span><span class="font-semibold">${state.user.email}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-400">Major:</span><span class="font-semibold">${state.user.major}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-400">Current GPA:</span><span class="font-semibold">${state.user.gpa}</span></div>
-                    </div>
-                </div>`;
-        }
-
-
+        function renderUserOverview(contentContainer) { contentContainer.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"><div class="widget col-span-1 md:col-span-2 lg:col-span-1"><h3 class="text-lg font-semibold text-gray-400 mb-4">Next Class</h3><p class="text-3xl font-bold text-white">${state.timetable[0].course}</p><p class="text-blue-400">${state.timetable[0].time} in ${state.timetable[0].venue}</p></div><div class="widget col-span-1"><h3 class="text-lg font-semibold text-gray-400 mb-4">Overall GPA</h3><p class="text-5xl font-bold text-white">${state.user.gpa}</p></div><div class="widget col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-2"><h3 class="text-lg font-semibold text-gray-400 mb-4">Upcoming Events</h3><ul class="space-y-3">${state.events.map(e => `<li class="flex items-center justify-between"><div><p class="font-semibold text-white">${e.title}</p><p class="text-sm text-gray-400">${e.location}</p></div><span class="text-sm font-medium text-blue-400">${e.date}</span></li>`).join('')}</ul></div><div class="widget col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4"><h3 class="text-lg font-semibold text-gray-400 mb-4">Recent Announcements</h3><ul class="space-y-4">${state.announcements.map(a => `<li><p class="font-semibold text-white">${a.title}</p><p class="text-sm text-gray-400">${a.content}</p></li>`).join('')}</ul></div></div>`; }
+        function renderUserTimetable(contentContainer) { const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']; contentContainer.innerHTML = `<div class="widget overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-700">${days.map(d => `<th class="p-4 text-sm font-semibold text-gray-300">${d}</th>`).join('')}</tr></thead><tbody><tr>${days.map(d => { const session = state.timetable.find(s => s.day === d); return `<td class="p-4 align-top">${session ? `<div class="bg-gray-700 p-3 rounded-lg"><p class="font-bold text-white">${session.course}</p><p class="text-sm text-blue-400">${session.time}</p><p class="text-sm text-gray-400">${session.venue}</p></div>` : ''}</td>`; }).join('')}</tr></tbody></table></div>`; }
+        function renderUserGrades(contentContainer) { contentContainer.innerHTML = `<div class="widget"><table class="w-full text-left"><thead><tr class="border-b border-gray-700"><th class="p-4">Course Code</th><th class="p-4">Course Name</th><th class="p-4 text-right">Grade</th></tr></thead><tbody>${Object.entries(state.grades).map(([code, data]) => `<tr class="border-b border-gray-700"><td class="p-4 text-gray-400">${code}</td><td class="p-4 font-semibold text-white">${data.name}</td><td class="p-4 text-right font-bold text-2xl ${data.grade.startsWith('A') ? 'text-green-400' : 'text-yellow-400'}">${data.grade}</td></tr>`).join('')}</tbody></table></div>`; }
+        function renderUserAnnouncements(contentContainer, searchTerm = '') { const filteredAnnouncements = state.announcements.filter(a => a.title.toLowerCase().includes(searchTerm.toLowerCase())); contentContainer.innerHTML = `<div class="mb-6"><input type="search" id="announcement-search" placeholder="Search announcements..." value="${searchTerm}"></div><div class="space-y-6">${filteredAnnouncements.map(a => `<div class="widget"><h3 class="text-xl font-bold text-white">${a.title}</h3><p class="text-sm text-gray-400 mb-2">Posted: ${a.date}</p><p>${a.content}</p></div>`).join('') || `<p>No announcements found.</p>`}</div>`; document.getElementById('announcement-search').addEventListener('input', (e) => renderUserAnnouncements(contentContainer, e.target.value)); }
+        function renderUserCourses(contentContainer, searchTerm = '') { const filteredCourses = state.courses.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.code.toLowerCase().includes(searchTerm.toLowerCase())); contentContainer.innerHTML = `<div class="mb-6"><input type="search" id="course-search" placeholder="Search by course name or code..." value="${searchTerm}"></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6">${filteredCourses.map(c => `<div class="widget"><span class="text-sm font-semibold text-blue-400">${c.code}</span><h3 class="text-xl font-bold text-white mt-1">${c.name}</h3><p class="text-gray-400 mt-1">Instructor: ${c.instructor}</p></div>`).join('') || `<p>No courses found.</p>`}</div>`; document.getElementById('course-search').addEventListener('input', (e) => renderUserCourses(contentContainer, e.target.value)); }
+        function renderUserEvents(contentContainer, searchTerm = '') { const filteredEvents = state.events.filter(e => e.title.toLowerCase().includes(searchTerm.toLowerCase())); contentContainer.innerHTML = `<div class="mb-6"><input type="search" id="event-search" placeholder="Search events..." value="${searchTerm}"></div><div class="widget"><ul class="space-y-4">${filteredEvents.map(e => `<li class="p-4 bg-gray-700 rounded-lg flex justify-between items-center"><div><h3 class="text-lg font-bold text-white">${e.title}</h3><p class="text-gray-400">${e.location}</p></div><div class="text-right"><p class="font-semibold text-blue-400">${e.date}</p><p class="text-gray-300">${new Date(`1970-01-01T${e.time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div></li>`).join('') || `<p>No events found.</p>`}</ul></div>`; document.getElementById('event-search').addEventListener('input', (e) => renderUserEvents(contentContainer, e.target.value)); }
+        function renderUserProfile(contentContainer) { contentContainer.innerHTML = `<div class="widget max-w-2xl mx-auto"><h2 class="text-2xl font-bold text-white mb-6">Student Profile</h2><div class="space-y-4"><div class="flex justify-between"><span class="text-gray-400">Full Name:</span><span class="font-semibold">${state.user.name}</span></div><div class="flex justify-between"><span class="text-gray-400">Student ID:</span><span class="font-semibold">${state.user.studentId}</span></div><div class="flex justify-between"><span class="text-gray-400">Email Address:</span><span class="font-semibold">${state.user.email}</span></div><div class="flex justify-between"><span class="text-gray-400">Major:</span><span class="font-semibold">${state.user.major}</span></div><div class="flex justify-between"><span class="text-gray-400">Current GPA:</span><span class="font-semibold">${state.user.gpa}</span></div></div></div>`; }
+        
         // --- ADMIN DASHBOARD ---
         const adminDashboardViews = {
             announcements: { title: 'Manage Announcements', render: renderAdminAnnouncements },
@@ -377,29 +195,31 @@
         
         function renderAdminDashboard(page, activeView = 'announcements') {
             page.innerHTML = `
-            <div class="flex h-screen bg-gray-900">
-                <aside class="w-64 flex-shrink-0 bg-gray-800 border-r border-gray-700 flex flex-col">
-                    <div class="h-20 flex items-center justify-center text-2xl font-bold text-red-500">ADMIN PANEL</div>
-                    <nav class="flex-1 px-4 py-4 space-y-2" id="admin-dashboard-nav"></nav>
-                    <div class="px-4 py-4">
-                        <button onclick="logout()" class="sidebar-link w-full">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                            <span class="ml-3">Logout</span>
-                        </button>
+                <div class="relative h-screen flex overflow-hidden bg-gray-900">
+                    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden" onclick="toggleSidebar()"></div>
+                    <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 border-r border-gray-700 flex flex-col z-40 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out">
+                        <div class="h-20 flex items-center justify-center text-2xl font-bold text-red-500">ADMIN PANEL</div>
+                        <nav class="flex-1 px-4 py-4 space-y-2" id="admin-dashboard-nav"></nav>
+                        <div class="px-4 py-4"><button onclick="logout()" class="sidebar-link w-full"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg><span class="ml-3">Logout</span></button></div>
+                    </aside>
+                    <div class="flex-1 flex flex-col overflow-y-auto">
+                        <header class="h-20 flex items-center justify-between px-4 sm:px-8 border-b border-gray-700 bg-gray-900 flex-shrink-0">
+                            <button class="md:hidden p-2 rounded-md text-gray-400 hover:bg-gray-700" onclick="toggleSidebar()">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 id="admin-dashboard-title" class="text-xl sm:text-2xl font-bold text-white"></h1>
+                            <div class="w-10"></div>
+                        </header>
+                        <main class="flex-1 p-4 sm:p-8" id="admin-dashboard-content"></main>
                     </div>
-                </aside>
-                <main class="flex-1 overflow-y-auto">
-                     <header class="h-20 flex items-center justify-between px-8 border-b border-gray-700">
-                        <h1 id="admin-dashboard-title" class="text-2xl font-bold text-white"></h1>
-                    </header>
-                    <div class="p-8" id="admin-dashboard-content"></div>
-                </main>
-            </div>`;
+                </div>`;
+
             document.getElementById('admin-dashboard-nav').innerHTML = Object.keys(adminDashboardViews).map(key => `<a href="#" data-view="${key}" class="sidebar-link admin-sidebar-link ${key === activeView ? 'active' : ''}"><span class="ml-3 font-medium">${adminDashboardViews[key].title}</span></a>`).join('');
             
             document.querySelectorAll('#admin-dashboard-nav .sidebar-link').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
+                    toggleSidebar(true);
                     renderAdminDashboard(page, e.currentTarget.dataset.view);
                 });
             });
@@ -411,40 +231,9 @@
         function renderAdminAnnouncements(contentContainer) {
             const isEditing = state.admin.editingAnnouncementId !== null;
             const item = isEditing ? state.announcements.find(a => a.id === state.admin.editingAnnouncementId) : { id: '', title: '', content: '' };
-            
-            contentContainer.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-1">
-                        <form id="announcement-form" class="widget space-y-4">
-                            <h3 class="text-xl font-bold text-white">${isEditing ? 'Edit' : 'Add New'} Announcement</h3>
-                            <input type="hidden" id="ann-id" value="${item.id}">
-                            <div><label class="text-sm text-gray-400 mb-1 block">Title</label><input type="text" id="ann-title" value="${item.title}" required></div>
-                            <div><label class="text-sm text-gray-400 mb-1 block">Content</label><textarea id="ann-content" rows="4" required>${item.content}</textarea></div>
-                            <div class="flex space-x-2 pt-2">
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">${isEditing ? 'Update' : 'Add'}</button>
-                                ${isEditing ? `<button type="button" id="cancel-edit-ann" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>` : ''}
-                            </div>
-                        </form>
-                    </div>
-                    <div class="lg:col-span-2 widget">
-                        <h3 class="text-xl font-bold text-white mb-4">Existing Announcements</h3>
-                        <ul class="space-y-3">
-                        ${state.announcements.map(a => `
-                            <li class="p-3 bg-gray-700 rounded-lg flex justify-between items-center">
-                                <div><p class="font-semibold">${a.title}</p><p class="text-sm text-gray-400">${a.date}</p></div>
-                                <div class="space-x-2 flex-shrink-0 ml-4">
-                                    <button data-id="${a.id}" class="edit-announcement-btn text-yellow-400 hover:text-yellow-300 font-semibold">Edit</button>
-                                    <button data-id="${a.id}" class="delete-announcement-btn text-red-500 hover:text-red-400 font-semibold">Delete</button>
-                                </div>
-                            </li>`).join('')}
-                        </ul>
-                    </div>
-                </div>`;
-
+            contentContainer.innerHTML = `<div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="lg:col-span-1"><form id="announcement-form" class="widget space-y-4"><h3 class="text-xl font-bold text-white">${isEditing ? 'Edit' : 'Add New'} Announcement</h3><input type="hidden" id="ann-id" value="${item.id}"><diV><label class="text-sm text-gray-400 mb-1 block">Title</label><input type="text" id="ann-title" value="${item.title}" required></div><div><label class="text-sm text-gray-400 mb-1 block">Content</label><textarea id="ann-content" rows="4" required>${item.content}</textarea></div><div class="flex space-x-2 pt-2"><button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">${isEditing ? 'Update' : 'Add'}</button>${isEditing ? `<button type="button" id="cancel-edit-ann" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>` : ''}</div></form></div><div class="lg:col-span-2 widget"><h3 class="text-xl font-bold text-white mb-4">Existing Announcements</h3><ul class="space-y-3">${state.announcements.map(a => `<li class="p-3 bg-gray-700 rounded-lg flex justify-between items-center"><div><p class="font-semibold">${a.title}</p><p class="text-sm text-gray-400">${a.date}</p></div><div class="space-x-2 flex-shrink-0 ml-4"><button data-id="${a.id}" class="edit-announcement-btn text-yellow-400 hover:text-yellow-300 font-semibold">Edit</button><button data-id="${a.id}" class="delete-announcement-btn text-red-500 hover:text-red-400 font-semibold">Delete</button></div></li>`).join('')}</ul></div></div>`;
             document.getElementById('announcement-form').addEventListener('submit', saveAnnouncement);
-            if (isEditing) {
-                document.getElementById('cancel-edit-ann').addEventListener('click', cancelEditAnnouncement);
-            }
+            if (isEditing) { document.getElementById('cancel-edit-ann').addEventListener('click', cancelEditAnnouncement); }
             document.querySelectorAll('.edit-announcement-btn').forEach(btn => btn.addEventListener('click', (e) => editAnnouncement(e.target.dataset.id)));
             document.querySelectorAll('.delete-announcement-btn').forEach(btn => btn.addEventListener('click', (e) => deleteAnnouncement(e.target.dataset.id)));
         }
@@ -454,7 +243,6 @@
             const id = document.getElementById('ann-id').value;
             const title = document.getElementById('ann-title').value;
             const content = document.getElementById('ann-content').value;
-            
             if (id) {
                 const index = state.announcements.findIndex(a => a.id == id);
                 state.announcements[index] = { ...state.announcements[index], title, content };
@@ -467,64 +255,16 @@
             renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'announcements');
         }
 
-        function editAnnouncement(id) {
-            state.admin.editingAnnouncementId = parseInt(id);
-            renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'announcements');
-        }
-
-        function cancelEditAnnouncement() {
-            state.admin.editingAnnouncementId = null;
-            renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'announcements');
-        }
-
-        function deleteAnnouncement(id) {
-            if (confirm('Are you sure you want to delete this announcement?')) {
-                state.announcements = state.announcements.filter(a => a.id != id);
-                if (state.admin.editingAnnouncementId == id) {
-                    state.admin.editingAnnouncementId = null;
-                }
-                renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'announcements');
-            }
-        }
+        function editAnnouncement(id) { state.admin.editingAnnouncementId = parseInt(id); renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'announcements'); }
+        function cancelEditAnnouncement() { state.admin.editingAnnouncementId = null; renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'announcements'); }
+        function deleteAnnouncement(id) { if (confirm('Are you sure you want to delete this announcement?')) { state.announcements = state.announcements.filter(a => a.id != id); if (state.admin.editingAnnouncementId == id) { state.admin.editingAnnouncementId = null; } renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'announcements'); } }
         
         function renderAdminEvents(contentContainer) {
             const isEditing = state.admin.editingEventId !== null;
             const item = isEditing ? state.events.find(e => e.id === state.admin.editingEventId) : { id: '', title: '', date: '', time: '', location: '' };
-
-             contentContainer.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-1">
-                        <form id="event-form" class="widget space-y-4">
-                            <h3 class="text-xl font-bold text-white">${isEditing ? 'Edit' : 'Add New'} Event</h3>
-                            <input type="hidden" id="event-id" value="${item.id}">
-                            <div><label class="text-sm text-gray-400 mb-1 block">Title</label><input type="text" id="event-title" value="${item.title}" required></div>
-                            <div><label class="text-sm text-gray-400 mb-1 block">Date</label><input type="date" id="event-date" value="${item.date}" required></div>
-                            <div><label class="text-sm text-gray-400 mb-1 block">Time</label><input type="time" id="event-time" value="${item.time}" required></div>
-                            <div><label class="text-sm text-gray-400 mb-1 block">Location</label><input type="text" id="event-location" value="${item.location}" required></div>
-                            <div class="flex space-x-2 pt-2">
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">${isEditing ? 'Update' : 'Add'}</button>
-                                ${isEditing ? `<button type="button" id="cancel-edit-event" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>` : ''}
-                            </div>
-                        </form>
-                    </div>
-                    <div class="lg:col-span-2 widget">
-                        <h3 class="text-xl font-bold text-white mb-4">Existing Events</h3>
-                        <ul class="space-y-3">
-                        ${state.events.map(e => `
-                            <li class="p-3 bg-gray-700 rounded-lg flex justify-between items-center">
-                                <div><p class="font-semibold">${e.title}</p><p class="text-sm text-gray-400">${e.date} at ${new Date(`1970-01-01T${e.time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div>
-                                <div class="space-x-2 flex-shrink-0 ml-4">
-                                    <button data-id="${e.id}" class="edit-event-btn text-yellow-400 hover:text-yellow-300 font-semibold">Edit</button>
-                                    <button data-id="${e.id}" class="delete-event-btn text-red-500 hover:text-red-400 font-semibold">Delete</button>
-                                </div>
-                            </li>`).join('')}
-                        </ul>
-                    </div>
-                </div>`;
+            contentContainer.innerHTML = `<div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="lg:col-span-1"><form id="event-form" class="widget space-y-4"><h3 class="text-xl font-bold text-white">${isEditing ? 'Edit' : 'Add New'} Event</h3><input type="hidden" id="event-id" value="${item.id}"><diV><label class="text-sm text-gray-400 mb-1 block">Title</label><input type="text" id="event-title" value="${item.title}" required></div><div><label class="text-sm text-gray-400 mb-1 block">Date</label><input type="date" id="event-date" value="${item.date}" required></div><div><label class="text-sm text-gray-400 mb-1 block">Time</label><input type="time" id="event-time" value="${item.time}" required></div><div><label class="text-sm text-gray-400 mb-1 block">Location</label><input type="text" id="event-location" value="${item.location}" required></div><div class="flex space-x-2 pt-2"><button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">${isEditing ? 'Update' : 'Add'}</button>${isEditing ? `<button type="button" id="cancel-edit-event" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>` : ''}</div></form></div><div class="lg:col-span-2 widget"><h3 class="text-xl font-bold text-white mb-4">Existing Events</h3><ul class="space-y-3">${state.events.map(e => `<li class="p-3 bg-gray-700 rounded-lg flex justify-between items-center"><div><p class="font-semibold">${e.title}</p><p class="text-sm text-gray-400">${e.date} at ${new Date(`1970-01-01T${e.time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div><div class="space-x-2 flex-shrink-0 ml-4"><button data-id="${e.id}" class="edit-event-btn text-yellow-400 hover:text-yellow-300 font-semibold">Edit</button><button data-id="${e.id}" class="delete-event-btn text-red-500 hover:text-red-400 font-semibold">Delete</button></div></li>`).join('')}</ul></div></div>`;
             document.getElementById('event-form').addEventListener('submit', saveEvent);
-            if (isEditing) {
-                document.getElementById('cancel-edit-event').addEventListener('click', cancelEditEvent);
-            }
+            if (isEditing) { document.getElementById('cancel-edit-event').addEventListener('click', cancelEditEvent); }
             document.querySelectorAll('.edit-event-btn').forEach(btn => btn.addEventListener('click', (e) => editEvent(e.target.dataset.id)));
             document.querySelectorAll('.delete-event-btn').forEach(btn => btn.addEventListener('click', (e) => deleteEvent(e.target.dataset.id)));
         }
@@ -536,7 +276,6 @@
             const date = document.getElementById('event-date').value;
             const time = document.getElementById('event-time').value;
             const location = document.getElementById('event-location').value;
-            
             if (id) {
                 const index = state.events.findIndex(e => e.id == id);
                 state.events[index] = { ...state.events[index], title, date, time, location };
@@ -549,27 +288,10 @@
             renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'events');
         }
 
-        function editEvent(id) {
-            state.admin.editingEventId = parseInt(id);
-            renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'events');
-        }
-
-        function cancelEditEvent() {
-            state.admin.editingEventId = null;
-            renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'events');
-        }
-
-        function deleteEvent(id) {
-             if (confirm('Are you sure you want to delete this event?')) {
-                state.events = state.events.filter(e => e.id != id);
-                if (state.admin.editingEventId == id) {
-                    state.admin.editingEventId = null;
-                }
-                renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'events');
-            }
-        }
-
-
+        function editEvent(id) { state.admin.editingEventId = parseInt(id); renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'events'); }
+        function cancelEditEvent() { state.admin.editingEventId = null; renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'events'); }
+        function deleteEvent(id) { if (confirm('Are you sure you want to delete this event?')) { state.events = state.events.filter(e => e.id != id); if (state.admin.editingEventId == id) { state.admin.editingEventId = null; } renderAdminDashboard(document.getElementById('page-admin-dashboard'), 'events'); } }
+        
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             renderPage('page-landing');
